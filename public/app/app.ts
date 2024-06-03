@@ -37,6 +37,7 @@ import {
   setAppEvents,
   setReturnToPreviousHook,
   setPluginExtensionsHook,
+  setCurrentUser,
 } from '@grafana/runtime';
 import { setPanelDataErrorView } from '@grafana/runtime/src/components/PanelDataErrorView';
 import { setPanelRenderer } from '@grafana/runtime/src/components/PanelRenderer';
@@ -147,6 +148,7 @@ export class GrafanaApp {
       setEmbeddedDashboard(EmbeddedDashboardLazy);
       setTimeZoneResolver(() => config.bootData.user.timezone);
       initGrafanaLive();
+      setCurrentUser(contextSrv.user);
 
       initAuthConfig();
 

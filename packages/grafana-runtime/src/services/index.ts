@@ -27,3 +27,4 @@ export {
   usePluginComponentExtensions,
 } from './pluginExtensions/usePluginExtensions';
 export { isPluginExtensionLink, isPluginExtensionComponent } from './pluginExtensions/utils';
+export { setCurrentUser } from './user';
