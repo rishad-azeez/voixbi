@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 
+	"github.com/prometheus/client_golang/prometheus"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metainternalversion "k8s.io/apimachinery/pkg/apis/meta/internalversion"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -20,9 +21,9 @@ type DualWriterMode3 struct {
 
 // newDualWriterMode3 returns a new DualWriter in mode 3.
 // Mode 3 represents writing to LegacyStorage and Storage and reading from Storage.
-func newDualWriterMode3(legacy LegacyStorage, storage Storage) *DualWriterMode3 {
+func newDualWriterMode3(legacy LegacyStorage, storage Storage, reg prometheus.Registerer) *DualWriterMode3 {
 	metrics := &dualWriterMetrics{}
-	metrics.init()
+	metrics.init(reg)
 	return &DualWriterMode3{Legacy: legacy, Storage: storage, Log: klog.NewKlogr().WithName("DualWriterMode3"), dualWriterMetrics: metrics}
 }
 

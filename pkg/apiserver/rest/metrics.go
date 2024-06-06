@@ -37,7 +37,8 @@ var DualWriterOutcome = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 	NativeHistogramBucketFactor: 1.1,
 }, []string{"mode", "name", "method"})
 
-func (m *dualWriterMetrics) init() {
+func (m *dualWriterMetrics) init(reg prometheus.Registerer) {
+	reg.MustRegister(DualWriterStorageDuration, DualWriterLegacyDuration, DualWriterOutcome)
 	m.legacy = DualWriterLegacyDuration
 	m.storage = DualWriterStorageDuration
 	m.outcome = DualWriterOutcome

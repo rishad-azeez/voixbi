@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	metainternalversion "k8s.io/apimachinery/pkg/apis/meta/internalversion"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -23,9 +24,9 @@ const mode1Str = "1"
 
 // NewDualWriterMode1 returns a new DualWriter in mode 1.
 // Mode 1 represents writing to and reading from LegacyStorage.
-func newDualWriterMode1(legacy LegacyStorage, storage Storage) *DualWriterMode1 {
+func newDualWriterMode1(legacy LegacyStorage, storage Storage, reg prometheus.Registerer) *DualWriterMode1 {
 	metrics := &dualWriterMetrics{}
-	metrics.init()
+	metrics.init(reg)
 	return &DualWriterMode1{Legacy: legacy, Storage: storage, Log: klog.NewKlogr().WithName("DualWriterMode1"), dualWriterMetrics: metrics}
 }
 
