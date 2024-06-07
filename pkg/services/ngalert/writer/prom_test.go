@@ -60,7 +60,8 @@ func TestPointsFromFrames(t *testing.T) {
 						expectedLabels[k] = v
 					}
 					require.Equal(t, expectedLabels, point.Labels)
-					require.Equal(t, "test", point.Name)
+					require.Contains(t, point.Labels, "__name__")
+					require.Equal(t, "test", point.Labels["__name__"])
 					require.Equal(t, now.Unix(), point.Metric.T)
 					require.Equal(t, v, point.Metric.V)
 				}

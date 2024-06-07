@@ -16,6 +16,7 @@ import (
 	"github.com/grafana/grafana/pkg/events"
 	"github.com/grafana/grafana/pkg/expr"
 	"github.com/grafana/grafana/pkg/infra/db"
+	"github.com/grafana/grafana/pkg/infra/httpclient"
 	"github.com/grafana/grafana/pkg/infra/kvstore"
 	"github.com/grafana/grafana/pkg/infra/log"
 	"github.com/grafana/grafana/pkg/infra/tracing"
@@ -73,6 +74,7 @@ func ProvideService(
 	pluginsStore pluginstore.Store,
 	tracer tracing.Tracer,
 	ruleStore *store.DBstore,
+	httpClientProvider httpclient.Provider,
 ) (*AlertNG, error) {
 	ng := &AlertNG{
 		Cfg:                  cfg,
@@ -99,6 +101,7 @@ func ProvideService(
 		pluginsStore:         pluginsStore,
 		tracer:               tracer,
 		store:                ruleStore,
+		httpClientProvider:   httpClientProvider,
 	}
 
 	if ng.IsDisabled() {
@@ -135,6 +138,7 @@ type AlertNG struct {
 	folderService       folder.Service
 	dashboardService    dashboards.DashboardService
 	api                 *api.API
+	httpClientProvider  httpclient.Provider
 
 	// Alerting notification services
 	MultiOrgAlertmanager *notifier.MultiOrgAlertmanager
@@ -289,22 +293,36 @@ func (ng *AlertNG) init() error {
 	ng.AlertsRouter = alertsRouter
 
 	evalFactory := eval.NewEvaluatorFactory(ng.Cfg.UnifiedAlerting, ng.DataSourceCache, ng.ExpressionService, ng.pluginsStore)
+
+	var recordingWriterFactory writer.WriterFactory
+	if ng.FeatureToggles.IsEnabledGlobally(featuremgmt.FlagGrafanaManagedRecordingRules) {
+		promWriterCfg := writer.PrometheusWriterConfig{
+			DatasourceUID: ng.Cfg.UnifiedAlerting.RecordingRules.DatasourceUID,
+			WritePath:     ng.Cfg.UnifiedAlerting.RecordingRules.WritePath,
+			TenantID:      ng.Cfg.UnifiedAlerting.RecordingRules.TenantID,
+			Timeout:       10 * time.Second,
+		}
+		recordingWriterFactory = writer.NewPrometheusWriterFactory(promWriterCfg, ng.DataSourceCache, ng.DataSourceService, ng.httpClientProvider, ng.Log)
+	} else {
+		recordingWriterFactory = writer.FakeWriterProvider{}
+	}
+
 	schedCfg := schedule.SchedulerCfg{
-		MaxAttempts:          ng.Cfg.UnifiedAlerting.MaxAttempts,
-		C:                    clk,
-		BaseInterval:         ng.Cfg.UnifiedAlerting.BaseInterval,
-		MinRuleInterval:      ng.Cfg.UnifiedAlerting.MinInterval,
-		DisableGrafanaFolder: ng.Cfg.UnifiedAlerting.ReservedLabels.IsReservedLabelDisabled(models.FolderTitleLabel),
-		JitterEvaluations:    schedule.JitterStrategyFrom(ng.Cfg.UnifiedAlerting, ng.FeatureToggles),
-		AppURL:               appUrl,
-		EvaluatorFactory:     evalFactory,
-		RuleStore:            ng.store,
-		FeatureToggles:       ng.FeatureToggles,
-		Metrics:              ng.Metrics.GetSchedulerMetrics(),
-		AlertSender:          alertsRouter,
-		Tracer:               ng.tracer,
-		Log:                  log.New("ngalert.scheduler"),
-		RecordingWriter:      writer.NewPrometheusWriter(log.New("ngalert.recording.writer")),
+		MaxAttempts:            ng.Cfg.UnifiedAlerting.MaxAttempts,
+		C:                      clk,
+		BaseInterval:           ng.Cfg.UnifiedAlerting.BaseInterval,
+		MinRuleInterval:        ng.Cfg.UnifiedAlerting.MinInterval,
+		DisableGrafanaFolder:   ng.Cfg.UnifiedAlerting.ReservedLabels.IsReservedLabelDisabled(models.FolderTitleLabel),
+		JitterEvaluations:      schedule.JitterStrategyFrom(ng.Cfg.UnifiedAlerting, ng.FeatureToggles),
+		AppURL:                 appUrl,
+		EvaluatorFactory:       evalFactory,
+		RuleStore:              ng.store,
+		FeatureToggles:         ng.FeatureToggles,
+		Metrics:                ng.Metrics.GetSchedulerMetrics(),
+		AlertSender:            alertsRouter,
+		Tracer:                 ng.tracer,
+		Log:                    log.New("ngalert.scheduler"),
+		RecordingWriterFactory: recordingWriterFactory,
 	}
 
 	// There are a set of feature toggles available that act as short-circuits for common configurations.

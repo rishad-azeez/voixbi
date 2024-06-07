@@ -100,6 +100,8 @@ type UnifiedAlertingSettings struct {
 	ReservedLabels                UnifiedAlertingReservedLabelSettings
 	StateHistory                  UnifiedAlertingStateHistorySettings
 	RemoteAlertmanager            RemoteAlertmanagerSettings
+	RecordingRules                RecordingRuleSettings
+
 	// MaxStateSaveConcurrency controls the number of goroutines (per rule) that can save alert state in parallel.
 	MaxStateSaveConcurrency   int
 	StatePeriodicSaveInterval time.Duration
@@ -107,6 +109,12 @@ type UnifiedAlertingSettings struct {
 
 	// Retention period for Alertmanager notification log entries.
 	NotificationLogRetention time.Duration
+}
+
+type RecordingRuleSettings struct {
+	DatasourceUID string
+	WritePath     string
+	TenantID      string
 }
 
 // RemoteAlertmanagerSettings contains the configuration needed
@@ -387,6 +395,15 @@ func (cfg *Cfg) ReadUnifiedAlertingSettings(iniFile *ini.File) error {
 		ExternalLabels:        stateHistoryLabels.KeysHash(),
 	}
 	uaCfg.StateHistory = uaCfgStateHistory
+
+	rrWriter := iniFile.Section("unified_alerting.recording_rules.writer")
+	rrWriterProm := iniFile.Section("unified_alerting.recording_rules.writer.prometheus")
+	uaCfgRecordingRules := RecordingRuleSettings{
+		DatasourceUID: rrWriter.Key("datasource_uid").MustString(""),
+		WritePath:     rrWriter.Key("write_path").MustString(""),
+		TenantID:      rrWriterProm.Key("tenant_id").MustString(""),
+	}
+	uaCfg.RecordingRules = uaCfgRecordingRules
 
 	uaCfg.MaxStateSaveConcurrency = ua.Key("max_state_save_concurrency").MustInt(1)
 
