@@ -464,10 +464,11 @@ func (am *Alertmanager) GetReceivers(ctx context.Context) ([]apimodels.Receiver,
 		return []apimodels.Receiver{}, err
 	}
 
-	var rcvs []apimodels.Receiver
-	for _, rcv := range res.Payload {
-		rcvs = append(rcvs, *rcv)
+	rcvs := make([]apimodels.Receiver, len(res.Payload))
+	for i, rcv := range res.Payload {
+		rcvs[i] = *rcv
 	}
+
 	return rcvs, nil
 }
 
