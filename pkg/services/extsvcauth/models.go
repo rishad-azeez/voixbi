@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/grafana/grafana/pkg/services/accesscontrol"
+	"github.com/grafana/grafana/pkg/services/accesscontrol/resourcepermissions"
 )
 
 const (
@@ -38,6 +39,7 @@ type SelfCfg struct {
 	Enabled bool
 	// Permissions are the permissions that the external service needs its associated service account to have.
 	Permissions []accesscontrol.Permission
+	ActionSets  []resourcepermissions.ActionSet
 }
 
 // ExternalServiceRegistration represents the registration form to save new client.

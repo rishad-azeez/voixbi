@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/grafana/pkg/plugins/log"
 	"github.com/grafana/grafana/pkg/plugins/pfs"
 	"github.com/grafana/grafana/pkg/services/accesscontrol"
+	"github.com/grafana/grafana/pkg/services/accesscontrol/resourcepermissions"
 	"github.com/grafana/grafana/pkg/services/extsvcauth"
 	"github.com/grafana/grafana/pkg/services/featuremgmt"
 	"github.com/grafana/grafana/pkg/services/pluginsintegration/pluginsettings"
@@ -103,6 +104,21 @@ func toAccessControlPermissions(ps []pfs.Permission) []accesscontrol.Permission 
 		res = append(res, accesscontrol.Permission{
 			Action: p.Action,
 			Scope:  scope,
+		})
+	}
+	return res
+}
+
+func toAccessControlActionSets(as []pfs.ActionSet) []resourcepermissions.ActionSet {
+	res := make([]resourcepermissions.ActionSet, 0, len(as))
+	for _, a := range as {
+		scope := ""
+		if a.Action != nil {
+			scope = *a.Scope
+		}
+		res = append(res, resourcepermissions.ActionSet{
+			Action:  a.Action,
+			Actions: a.Actions,
 		})
 	}
 	return res
