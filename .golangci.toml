@@ -118,8 +118,9 @@ files = [
 
 [linters-settings.gocritic]
 enabled-checks = ["ruleguard"]
-[linters-settings.gocritic.settings.ruleguard]
-rules = "pkg/ruleguard.rules.go"
+
+[[linters-settings.gocritic.settings.ruleguard]]
+rules = "${configDir}/pkg/ruleguard.rules.go"
 
 [linters-settings.misspell]
 ignore-words = ["Unknwon", "Creater"]
@@ -136,7 +137,7 @@ enable = [
   "errcheck",
   # "gochecknoinits",
   # "goconst",
-  # "gocritic", # Temporarily disabled on 2022-09-09, running into weird bug "ruleguard: execution error: used Run() with an empty rule set; forgot to call Load() first?"
+  "gocritic",
   "goimports",
   "goprintffuncname",
   "gosec",
@@ -264,3 +265,7 @@ text = "ST1021"
 linters = ["gosec"]
 path = '(.+)_test\.go'
 text = "G601"
+
+[[issues.exclude-rules]]
+linters = ["gocritic"]
+path = '(.+)\.pb\.go'
