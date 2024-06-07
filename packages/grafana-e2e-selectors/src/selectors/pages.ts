@@ -67,6 +67,14 @@ export const Pages = {
           shareInternally: 'data-testid new share button share internally',
         },
       },
+      newExportButton: {
+        container: 'data-testid new export button',
+        arrowMenu: 'data-testid new export button arrow menu',
+        menu: {
+          container: 'data-testid new export button menu',
+          exportAsJson: 'data-testid new export button export as json',
+        },
+      },
       playlistControls: {
         prev: 'data-testid playlist previous dashboard button',
         stop: 'data-testid playlist stop dashboard button',
@@ -270,6 +278,15 @@ export const Pages = {
     },
     PublicDashboardScene: {
       Tab: 'Tab Public Dashboard',
+    },
+  },
+  ExportDashboardDrawer: {
+    ExportAsJson: {
+      container: 'data-testid share as Json drawer container',
+      exportExternallyToggle: 'data-testid export externally toggle type select',
+      saveToFileButton: 'data-testid save to file button',
+      copyToClipboard: 'data-testid copy to clipboard button',
+      cancelButton: 'data-testid cancel button',
     },
   },
   PublicDashboard: {
