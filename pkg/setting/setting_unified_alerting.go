@@ -112,9 +112,10 @@ type UnifiedAlertingSettings struct {
 }
 
 type RecordingRuleSettings struct {
-	DatasourceUID string
-	WritePath     string
-	TenantID      string
+	URL               string
+	BasicAuthUsername string
+	BasicAuthPassword string
+	TenantID          string
 }
 
 // RemoteAlertmanagerSettings contains the configuration needed
@@ -399,9 +400,10 @@ func (cfg *Cfg) ReadUnifiedAlertingSettings(iniFile *ini.File) error {
 	rrWriter := iniFile.Section("unified_alerting.recording_rules.writer")
 	rrWriterProm := iniFile.Section("unified_alerting.recording_rules.writer.prometheus")
 	uaCfgRecordingRules := RecordingRuleSettings{
-		DatasourceUID: rrWriter.Key("datasource_uid").MustString(""),
-		WritePath:     rrWriter.Key("write_path").MustString(""),
-		TenantID:      rrWriterProm.Key("tenant_id").MustString(""),
+		URL:               rrWriter.Key("url").MustString(""),
+		BasicAuthUsername: rrWriter.Key("basic_auth_username").MustString(""),
+		BasicAuthPassword: rrWriter.Key("basic_auth_password").MustString(""),
+		TenantID:          rrWriterProm.Key("tenant_id").MustString(""),
 	}
 	uaCfg.RecordingRules = uaCfgRecordingRules
 

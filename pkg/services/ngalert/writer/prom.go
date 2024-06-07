@@ -5,17 +5,11 @@ import (
 	"fmt"
 	"math"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
 	"github.com/grafana/dataplane/sdata/numeric"
 	"github.com/grafana/grafana/pkg/infra/log"
-	"github.com/grafana/grafana/pkg/services/accesscontrol"
-	"github.com/grafana/grafana/pkg/services/auth/identity"
-	"github.com/grafana/grafana/pkg/services/datasources"
-	"github.com/grafana/grafana/pkg/services/org"
-	"github.com/grafana/grafana/pkg/services/pluginsintegration/adapters"
 	"github.com/m3db/prometheus_remote_client_golang/promremote"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend/httpclient"
@@ -90,90 +84,43 @@ func PointsFromFrames(name string, t time.Time, frames data.Frames, extraLabels 
 	return points, nil
 }
 
-type PrometheusWriterConfig struct {
-	DatasourceUID string
-	WritePath     string
-	TenantID      string
-	Timeout       time.Duration
-}
-
-type datasourceCache interface {
-	GetDatasourceByUID(ctx context.Context, uid string, user identity.Requester, skipCache bool) (*datasources.DataSource, error)
-}
-
 type httpClientProvider interface {
 	GetTransport(opts ...httpclient.Options) (http.RoundTripper, error)
 }
 
-type datasourceDecrypter interface {
-	DecryptedValues(ctx context.Context, ds *datasources.DataSource) (map[string]string, error)
+type PrometheusWriterConfig struct {
+	URL               string
+	BasicAuthUsername string
+	BasicAuthPassword string
+	TenantID          string
+	Timeout           time.Duration
 }
 
-type PrometheusWriterFactory struct {
-	cfg                 PrometheusWriterConfig
-	dsCache             datasourceCache
-	datasourceDecrypter datasourceDecrypter
-	httpClientProvider  httpClientProvider
-	logger              log.Logger
+type PrometheusWriter struct {
+	tenantID string
+	client   promremote.Client
+	logger   log.Logger
 }
 
-func NewPrometheusWriterFactory(
+func NewPrometheusWriter(
 	cfg PrometheusWriterConfig,
-	dsCache datasourceCache,
-	datasourceDecrypter datasourceDecrypter,
 	httpClientProvider httpClientProvider,
 	l log.Logger,
-) *PrometheusWriterFactory {
-	return &PrometheusWriterFactory{
-		cfg:                 cfg,
-		dsCache:             dsCache,
-		datasourceDecrypter: datasourceDecrypter,
-		httpClientProvider:  httpClientProvider,
-		logger:              l,
-	}
-}
-
-func (p PrometheusWriterFactory) GetWriter(ctx context.Context, orgID int64) (Writer, error) {
-	bgUser := accesscontrol.BackgroundUser("alerting_recording_rules", orgID, org.RoleAdmin, []accesscontrol.Permission{
-		{Action: datasources.ActionRead, Scope: datasources.ScopeAll},
-	})
-	ds, err := p.dsCache.GetDatasourceByUID(ctx, p.cfg.DatasourceUID, bgUser, false)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get datasource: %w", err)
-	}
-
-	decryptFn := func(ds *datasources.DataSource) (map[string]string, error) {
-		return p.datasourceDecrypter.DecryptedValues(ctx, ds)
-	}
-	instanceSettings, err := adapters.ModelToInstanceSettings(ds, decryptFn)
-	if err != nil {
-		return nil, err
-	}
-
-	httpClientOptions, err := instanceSettings.HTTPClientOptions(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	rt, err := p.httpClientProvider.GetTransport(httpclient.Options{
-		Timeouts:  httpClientOptions.Timeouts,
-		TLS:       httpClientOptions.TLS,
-		BasicAuth: httpClientOptions.BasicAuth,
+) (*PrometheusWriter, error) {
+	rt, err := httpClientProvider.GetTransport(httpclient.Options{
+		BasicAuth: &httpclient.BasicAuthOptions{
+			User:     cfg.BasicAuthUsername,
+			Password: cfg.BasicAuthPassword,
+		},
 	})
 	if err != nil {
 		return nil, err
 	}
-
-	instanceURL, err := url.Parse(instanceSettings.URL)
-	if err != nil {
-		return nil, err
-	}
-	instanceURL.Path = p.cfg.WritePath
 
 	clientCfg := promremote.NewConfig(
 		promremote.UserAgent("grafana-recording-rule"),
-		promremote.WriteURLOption(instanceURL.String()),
-		promremote.HTTPClientTimeoutOption(p.cfg.Timeout),
+		promremote.WriteURLOption(cfg.URL),
+		promremote.HTTPClientTimeoutOption(cfg.Timeout),
 		promremote.HTTPClientOption(&http.Client{Transport: rt}),
 	)
 
@@ -183,18 +130,10 @@ func (p PrometheusWriterFactory) GetWriter(ctx context.Context, orgID int64) (Wr
 	}
 
 	return &PrometheusWriter{
-		OrgID:    orgID,
-		TenantID: p.cfg.TenantID,
+		tenantID: cfg.TenantID,
 		client:   client,
-		logger:   p.logger,
+		logger:   l,
 	}, nil
-}
-
-type PrometheusWriter struct {
-	OrgID    int64
-	TenantID string
-	client   promremote.Client
-	logger   log.Logger
 }
 
 // Write writes the given frames to the Prometheus remote write endpoint.
@@ -218,8 +157,8 @@ func (w PrometheusWriter) Write(ctx context.Context, name string, t time.Time, f
 	}
 
 	headers := map[string]string{}
-	if w.TenantID != "" {
-		headers["X-Scope-OrgID"] = fmt.Sprintf("%v", w.OrgID)
+	if w.tenantID != "" {
+		headers["X-Scope-OrgID"] = fmt.Sprintf("%v", w.tenantID)
 	}
 
 	l.Debug("Writing time series", "series", name)

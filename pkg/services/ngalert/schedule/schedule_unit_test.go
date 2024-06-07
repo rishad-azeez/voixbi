@@ -461,18 +461,18 @@ func setupScheduler(t *testing.T, rs *fakeRulesStore, is *state.FakeInstanceStor
 	}
 
 	schedCfg := SchedulerCfg{
-		BaseInterval:           cfg.BaseInterval,
-		MaxAttempts:            cfg.MaxAttempts,
-		C:                      mockedClock,
-		AppURL:                 appUrl,
-		EvaluatorFactory:       evaluator,
-		RuleStore:              rs,
-		FeatureToggles:         featuremgmt.WithFeatures(featuremgmt.FlagGrafanaManagedRecordingRules),
-		Metrics:                m.GetSchedulerMetrics(),
-		AlertSender:            senderMock,
-		Tracer:                 testTracer,
-		Log:                    log.New("ngalert.scheduler"),
-		RecordingWriterFactory: writer.FakeWriterProvider{},
+		BaseInterval:     cfg.BaseInterval,
+		MaxAttempts:      cfg.MaxAttempts,
+		C:                mockedClock,
+		AppURL:           appUrl,
+		EvaluatorFactory: evaluator,
+		RuleStore:        rs,
+		FeatureToggles:   featuremgmt.WithFeatures(featuremgmt.FlagGrafanaManagedRecordingRules),
+		Metrics:          m.GetSchedulerMetrics(),
+		AlertSender:      senderMock,
+		Tracer:           testTracer,
+		Log:              log.New("ngalert.scheduler"),
+		RecordingWriter:  writer.FakeWriter{},
 	}
 	managerCfg := state.ManagerCfg{
 		Metrics:                 m.GetStateMetrics(),

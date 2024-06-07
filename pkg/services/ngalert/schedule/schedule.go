@@ -94,26 +94,26 @@ type schedule struct {
 
 	tracer tracing.Tracer
 
-	recordingWriterFactory writer.WriterFactory
+	recordingWriter writer.Writer
 }
 
 // SchedulerCfg is the scheduler configuration.
 type SchedulerCfg struct {
-	MaxAttempts            int64
-	BaseInterval           time.Duration
-	C                      clock.Clock
-	MinRuleInterval        time.Duration
-	DisableGrafanaFolder   bool
-	FeatureToggles         featuremgmt.FeatureToggles
-	AppURL                 *url.URL
-	JitterEvaluations      JitterStrategy
-	EvaluatorFactory       eval.EvaluatorFactory
-	RuleStore              RulesStore
-	Metrics                *metrics.Scheduler
-	AlertSender            AlertsSender
-	Tracer                 tracing.Tracer
-	Log                    log.Logger
-	RecordingWriterFactory writer.WriterFactory
+	MaxAttempts          int64
+	BaseInterval         time.Duration
+	C                    clock.Clock
+	MinRuleInterval      time.Duration
+	DisableGrafanaFolder bool
+	FeatureToggles       featuremgmt.FeatureToggles
+	AppURL               *url.URL
+	JitterEvaluations    JitterStrategy
+	EvaluatorFactory     eval.EvaluatorFactory
+	RuleStore            RulesStore
+	Metrics              *metrics.Scheduler
+	AlertSender          AlertsSender
+	Tracer               tracing.Tracer
+	Log                  log.Logger
+	RecordingWriter      writer.Writer
 }
 
 // NewScheduler returns a new scheduler.
@@ -125,24 +125,24 @@ func NewScheduler(cfg SchedulerCfg, stateManager *state.Manager) *schedule {
 	}
 
 	sch := schedule{
-		registry:               newRuleRegistry(),
-		maxAttempts:            cfg.MaxAttempts,
-		clock:                  cfg.C,
-		baseInterval:           cfg.BaseInterval,
-		log:                    cfg.Log,
-		evaluatorFactory:       cfg.EvaluatorFactory,
-		ruleStore:              cfg.RuleStore,
-		metrics:                cfg.Metrics,
-		appURL:                 cfg.AppURL,
-		disableGrafanaFolder:   cfg.DisableGrafanaFolder,
-		jitterEvaluations:      cfg.JitterEvaluations,
-		featureToggles:         cfg.FeatureToggles,
-		stateManager:           stateManager,
-		minRuleInterval:        cfg.MinRuleInterval,
-		schedulableAlertRules:  alertRulesRegistry{rules: make(map[ngmodels.AlertRuleKey]*ngmodels.AlertRule)},
-		alertsSender:           cfg.AlertSender,
-		tracer:                 cfg.Tracer,
-		recordingWriterFactory: cfg.RecordingWriterFactory,
+		registry:              newRuleRegistry(),
+		maxAttempts:           cfg.MaxAttempts,
+		clock:                 cfg.C,
+		baseInterval:          cfg.BaseInterval,
+		log:                   cfg.Log,
+		evaluatorFactory:      cfg.EvaluatorFactory,
+		ruleStore:             cfg.RuleStore,
+		metrics:               cfg.Metrics,
+		appURL:                cfg.AppURL,
+		disableGrafanaFolder:  cfg.DisableGrafanaFolder,
+		jitterEvaluations:     cfg.JitterEvaluations,
+		featureToggles:        cfg.FeatureToggles,
+		stateManager:          stateManager,
+		minRuleInterval:       cfg.MinRuleInterval,
+		schedulableAlertRules: alertRulesRegistry{rules: make(map[ngmodels.AlertRuleKey]*ngmodels.AlertRule)},
+		alertsSender:          cfg.AlertSender,
+		tracer:                cfg.Tracer,
+		recordingWriter:       cfg.RecordingWriter,
 	}
 
 	return &sch
@@ -259,7 +259,7 @@ func (sch *schedule) processTick(ctx context.Context, dispatcherGroup *errgroup.
 		sch.metrics,
 		sch.log,
 		sch.tracer,
-		sch.recordingWriterFactory,
+		sch.recordingWriter,
 		sch.evalAppliedFunc,
 		sch.stopAppliedFunc,
 	)

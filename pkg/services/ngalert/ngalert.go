@@ -294,35 +294,39 @@ func (ng *AlertNG) init() error {
 
 	evalFactory := eval.NewEvaluatorFactory(ng.Cfg.UnifiedAlerting, ng.DataSourceCache, ng.ExpressionService, ng.pluginsStore)
 
-	var recordingWriterFactory writer.WriterFactory
+	var recordingWriter writer.Writer
 	if ng.FeatureToggles.IsEnabledGlobally(featuremgmt.FlagGrafanaManagedRecordingRules) {
 		promWriterCfg := writer.PrometheusWriterConfig{
-			DatasourceUID: ng.Cfg.UnifiedAlerting.RecordingRules.DatasourceUID,
-			WritePath:     ng.Cfg.UnifiedAlerting.RecordingRules.WritePath,
-			TenantID:      ng.Cfg.UnifiedAlerting.RecordingRules.TenantID,
-			Timeout:       10 * time.Second,
+			URL:               ng.Cfg.UnifiedAlerting.RecordingRules.URL,
+			BasicAuthUsername: ng.Cfg.UnifiedAlerting.RecordingRules.BasicAuthUsername,
+			BasicAuthPassword: ng.Cfg.UnifiedAlerting.RecordingRules.BasicAuthPassword,
+			TenantID:          ng.Cfg.UnifiedAlerting.RecordingRules.TenantID,
+			Timeout:           10 * time.Second,
 		}
-		recordingWriterFactory = writer.NewPrometheusWriterFactory(promWriterCfg, ng.DataSourceCache, ng.DataSourceService, ng.httpClientProvider, ng.Log)
+		recordingWriter, err = writer.NewPrometheusWriter(promWriterCfg, ng.httpClientProvider, ng.Log.New("ngalert.recording_rule.prometheus_writer"))
+		if err != nil {
+			return err
+		}
 	} else {
-		recordingWriterFactory = writer.FakeWriterProvider{}
+		recordingWriter = writer.NoopWriter{}
 	}
 
 	schedCfg := schedule.SchedulerCfg{
-		MaxAttempts:            ng.Cfg.UnifiedAlerting.MaxAttempts,
-		C:                      clk,
-		BaseInterval:           ng.Cfg.UnifiedAlerting.BaseInterval,
-		MinRuleInterval:        ng.Cfg.UnifiedAlerting.MinInterval,
-		DisableGrafanaFolder:   ng.Cfg.UnifiedAlerting.ReservedLabels.IsReservedLabelDisabled(models.FolderTitleLabel),
-		JitterEvaluations:      schedule.JitterStrategyFrom(ng.Cfg.UnifiedAlerting, ng.FeatureToggles),
-		AppURL:                 appUrl,
-		EvaluatorFactory:       evalFactory,
-		RuleStore:              ng.store,
-		FeatureToggles:         ng.FeatureToggles,
-		Metrics:                ng.Metrics.GetSchedulerMetrics(),
-		AlertSender:            alertsRouter,
-		Tracer:                 ng.tracer,
-		Log:                    log.New("ngalert.scheduler"),
-		RecordingWriterFactory: recordingWriterFactory,
+		MaxAttempts:          ng.Cfg.UnifiedAlerting.MaxAttempts,
+		C:                    clk,
+		BaseInterval:         ng.Cfg.UnifiedAlerting.BaseInterval,
+		MinRuleInterval:      ng.Cfg.UnifiedAlerting.MinInterval,
+		DisableGrafanaFolder: ng.Cfg.UnifiedAlerting.ReservedLabels.IsReservedLabelDisabled(models.FolderTitleLabel),
+		JitterEvaluations:    schedule.JitterStrategyFrom(ng.Cfg.UnifiedAlerting, ng.FeatureToggles),
+		AppURL:               appUrl,
+		EvaluatorFactory:     evalFactory,
+		RuleStore:            ng.store,
+		FeatureToggles:       ng.FeatureToggles,
+		Metrics:              ng.Metrics.GetSchedulerMetrics(),
+		AlertSender:          alertsRouter,
+		Tracer:               ng.tracer,
+		Log:                  log.New("ngalert.scheduler"),
+		RecordingWriter:      recordingWriter,
 	}
 
 	// There are a set of feature toggles available that act as short-circuits for common configurations.

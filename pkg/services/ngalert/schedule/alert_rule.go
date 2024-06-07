@@ -57,7 +57,7 @@ func newRuleFactory(
 	met *metrics.Scheduler,
 	logger log.Logger,
 	tracer tracing.Tracer,
-	recordingWriterFactory writer.WriterFactory,
+	recordingWriter writer.Writer,
 	evalAppliedHook evalAppliedFunc,
 	stopAppliedHook stopAppliedFunc,
 ) ruleFactoryFunc {
@@ -72,7 +72,7 @@ func newRuleFactory(
 				logger,
 				met,
 				tracer,
-				recordingWriterFactory,
+				recordingWriter,
 			)
 		}
 		return newAlertRule(

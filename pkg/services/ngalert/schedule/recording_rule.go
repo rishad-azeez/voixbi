@@ -39,10 +39,10 @@ type recordingRule struct {
 	metrics *metrics.Scheduler
 	tracer  tracing.Tracer
 
-	writerFactory writer.WriterFactory
+	writer writer.Writer
 }
 
-func newRecordingRule(parent context.Context, maxAttempts int64, clock clock.Clock, evalFactory eval.EvaluatorFactory, ft featuremgmt.FeatureToggles, logger log.Logger, metrics *metrics.Scheduler, tracer tracing.Tracer, writerFactory writer.WriterFactory) *recordingRule {
+func newRecordingRule(parent context.Context, maxAttempts int64, clock clock.Clock, evalFactory eval.EvaluatorFactory, ft featuremgmt.FeatureToggles, logger log.Logger, metrics *metrics.Scheduler, tracer tracing.Tracer, writer writer.Writer) *recordingRule {
 	ctx, stop := util.WithCancelCause(parent)
 	return &recordingRule{
 		ctx:            ctx,
@@ -55,7 +55,7 @@ func newRecordingRule(parent context.Context, maxAttempts int64, clock clock.Clo
 		logger:         logger,
 		metrics:        metrics,
 		tracer:         tracer,
-		writerFactory:  writerFactory,
+		writer:         writer,
 	}
 }
 
@@ -88,11 +88,6 @@ func (r *recordingRule) Stop(reason error) {
 func (r *recordingRule) Run(key ngmodels.AlertRuleKey) error {
 	ctx := ngmodels.WithRuleKey(r.ctx, key)
 	logger := r.logger.FromContext(ctx)
-	writer, err := r.writerFactory.GetWriter(ctx, key.OrgID)
-	if err != nil {
-		logger.Error("Failed to get writer", "error", err)
-		return err
-	}
 
 	logger.Debug("Recording rule routine started")
 	for {
@@ -109,7 +104,7 @@ func (r *recordingRule) Run(key ngmodels.AlertRuleKey) error {
 			// TODO: Skipping the "evalRunning" guard that the alert rule routine does, because it seems to be dead code and impossible to hit.
 			// TODO: Either implement me or remove from alert rules once investigated.
 
-			r.doEvaluate(ctx, eval, writer)
+			r.doEvaluate(ctx, eval)
 		case <-ctx.Done():
 			logger.Debug("Stopping recording rule routine")
 			return nil
@@ -117,7 +112,7 @@ func (r *recordingRule) Run(key ngmodels.AlertRuleKey) error {
 	}
 }
 
-func (r *recordingRule) doEvaluate(ctx context.Context, ev *Evaluation, writer writer.Writer) {
+func (r *recordingRule) doEvaluate(ctx context.Context, ev *Evaluation) {
 	logger := r.logger.FromContext(ctx).New("now", ev.scheduledAt, "fingerprint", ev.Fingerprint())
 	orgID := fmt.Sprint(ev.rule.OrgID)
 	evalDuration := r.metrics.EvalDuration.WithLabelValues(orgID)
@@ -152,7 +147,7 @@ func (r *recordingRule) doEvaluate(ctx context.Context, ev *Evaluation, writer w
 			return
 		}
 
-		err := r.tryEvaluation(ctx, ev, logger, writer)
+		err := r.tryEvaluation(ctx, ev, logger)
 		if err == nil {
 			return
 		}
@@ -168,7 +163,7 @@ func (r *recordingRule) doEvaluate(ctx context.Context, ev *Evaluation, writer w
 	}
 }
 
-func (r *recordingRule) tryEvaluation(ctx context.Context, ev *Evaluation, logger log.Logger, writer writer.Writer) error {
+func (r *recordingRule) tryEvaluation(ctx context.Context, ev *Evaluation, logger log.Logger) error {
 	orgID := fmt.Sprint(ev.rule.OrgID)
 	evalAttemptTotal := r.metrics.EvalAttemptTotal.WithLabelValues(orgID)
 	evalAttemptFailures := r.metrics.EvalAttemptFailures.WithLabelValues(orgID)
@@ -207,7 +202,7 @@ func (r *recordingRule) tryEvaluation(ctx context.Context, ev *Evaluation, logge
 	}
 
 	writeStart := r.clock.Now()
-	err = writer.Write(ctx, ev.rule.Record.Metric, ev.scheduledAt, frames, ev.rule.Labels)
+	err = r.writer.Write(ctx, ev.rule.Record.Metric, ev.scheduledAt, frames, ev.rule.Labels)
 	writeDur := r.clock.Now().Sub(writeStart)
 
 	if err != nil {

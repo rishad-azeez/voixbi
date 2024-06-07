@@ -7,18 +7,6 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/data"
 )
 
-type FakeWriterProvider struct {
-	GetWriterFunc func(ctx context.Context, orgID int64) (Writer, error)
-}
-
-func (p FakeWriterProvider) GetWriter(ctx context.Context, orgID int64) (Writer, error) {
-	if p.GetWriterFunc == nil {
-		return &FakeWriter{}, nil
-	}
-
-	return p.GetWriterFunc(ctx, orgID)
-}
-
 type FakeWriter struct {
 	WriteFunc func(ctx context.Context, name string, t time.Time, frames data.Frames, extraLabels map[string]string) error
 }
