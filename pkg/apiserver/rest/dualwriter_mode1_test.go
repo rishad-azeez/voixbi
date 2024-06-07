@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,6 +13,20 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apiserver/pkg/apis/example"
 )
+
+// waitPendingActions is a workaround to allow consistent testing.
+//
+// FIXME: DualWriter interface to provide a graceful termination mechanism. The
+// use of this inteface and the sync.WaitGroup means we are actually leaking
+// goroutines past the execution of the server, which means the real state of
+// the storage at the moment of termination is undefined (the goroutines may or
+// may not have had the chance to properly run and propage state before main
+// terminates).
+func waitPendingActions(x any) {
+	if w, _ := x.(interface{ waitPendingActions() }); w != nil {
+		w.waitPendingActions()
+	}
+}
 
 var exampleObj = &example.Pod{TypeMeta: metav1.TypeMeta{Kind: "foo"}, ObjectMeta: metav1.ObjectMeta{Name: "foo", ResourceVersion: "1"}, Spec: example.PodSpec{}, Status: example.PodStatus{}}
 var exampleObjDifferentRV = &example.Pod{TypeMeta: metav1.TypeMeta{Kind: "foo"}, ObjectMeta: metav1.ObjectMeta{Name: "foo", ResourceVersion: "3"}, Spec: example.PodSpec{}, Status: example.PodStatus{}}
@@ -37,7 +52,15 @@ func TestMode1_Create(t *testing.T) {
 					m.On("Create", mock.Anything, input, mock.Anything, mock.Anything).Return(exampleObj, nil)
 				},
 				setupStorageFn: func(m *mock.Mock, input runtime.Object) {
-					m.On("Create", mock.Anything, anotherObj, mock.Anything, mock.Anything).Return(anotherObj, nil)
+					var ret runtime.Object = exampleObj
+					ret = ret.DeepCopyObject()
+					input, err := enrichLegacyObject(input, ret, true)
+					if err != nil {
+						// TODO: we could pass the *testing.T to the setup func
+						// to allow better failing in tests
+						panic(fmt.Sprintf("error enriching object during setup: %v", err))
+					}
+					m.On("Create", mock.Anything, input, mock.Anything, mock.Anything).Return(anotherObj, nil)
 				},
 			},
 			{
@@ -69,6 +92,7 @@ func TestMode1_Create(t *testing.T) {
 			dw := NewDualWriter(Mode1, ls, us)
 
 			obj, err := dw.Create(context.Background(), tt.input, func(context.Context, runtime.Object) error { return nil }, &metav1.CreateOptions{})
+			waitPendingActions(dw)
 
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -132,6 +156,7 @@ func TestMode1_Get(t *testing.T) {
 			dw := NewDualWriter(Mode1, ls, us)
 
 			obj, err := dw.Get(context.Background(), tt.input, &metav1.GetOptions{})
+			waitPendingActions(dw)
 
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -183,6 +208,7 @@ func TestMode1_List(t *testing.T) {
 			dw := NewDualWriter(Mode1, ls, us)
 
 			_, err := dw.List(context.Background(), &metainternalversion.ListOptions{})
+			waitPendingActions(dw)
 
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -238,6 +264,7 @@ func TestMode1_Delete(t *testing.T) {
 			dw := NewDualWriter(Mode1, ls, us)
 
 			obj, _, err := dw.Delete(context.Background(), tt.input, func(ctx context.Context, obj runtime.Object) error { return nil }, &metav1.DeleteOptions{})
+			waitPendingActions(dw)
 
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -297,6 +324,7 @@ func TestMode1_DeleteCollection(t *testing.T) {
 			dw := NewDualWriter(Mode1, ls, us)
 
 			obj, err := dw.DeleteCollection(context.Background(), func(ctx context.Context, obj runtime.Object) error { return nil }, tt.input, &metainternalversion.ListOptions{})
+			waitPendingActions(dw)
 
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -373,6 +401,7 @@ func TestMode1_Update(t *testing.T) {
 			dw := NewDualWriter(Mode1, ls, us)
 
 			obj, _, err := dw.Update(context.Background(), tt.input, updatedObjInfoObj{}, func(ctx context.Context, obj runtime.Object) error { return nil }, func(ctx context.Context, obj, old runtime.Object) error { return nil }, false, &metav1.UpdateOptions{})
+			waitPendingActions(dw)
 
 			if tt.wantErr {
 				assert.Error(t, err)

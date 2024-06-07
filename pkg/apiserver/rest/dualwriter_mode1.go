@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"errors"
+	"sync"
 	"time"
 
 	metainternalversion "k8s.io/apimachinery/pkg/apis/meta/internalversion"
@@ -17,6 +18,8 @@ type DualWriterMode1 struct {
 	Storage Storage
 	*dualWriterMetrics
 	Log klog.Logger
+
+	pendingActions sync.WaitGroup
 }
 
 const mode1Str = "1"
@@ -49,15 +52,20 @@ func (d *DualWriterMode1) Create(ctx context.Context, original runtime.Object, c
 	}
 	d.recordLegacyDuration(false, mode1Str, options.Kind, method, startLegacy)
 
+	d.pendingActions.Add(1)
 	go func() {
+		defer d.pendingActions.Done()
+		ctx := context.WithoutCancel(ctx)
 		ctx, cancel := context.WithTimeoutCause(ctx, time.Second*10, errors.New("storage create timeout"))
+		defer cancel()
+		created := created.DeepCopyObject()
 		createdLegacy, err := enrichLegacyObject(original, created, true)
 		if err != nil {
-			cancel()
+			log.Error(err, "could not enrich object")
+			return
 		}
 
 		startStorage := time.Now()
-		defer cancel()
 		_, errObjectSt := d.Storage.Create(ctx, createdLegacy, createValidation, options)
 		d.recordStorageDuration(errObjectSt != nil, mode1Str, options.Kind, method, startStorage)
 	}()
@@ -78,8 +86,11 @@ func (d *DualWriterMode1) Get(ctx context.Context, name string, options *metav1.
 	}
 	d.recordLegacyDuration(errLegacy != nil, mode1Str, options.Kind, method, startLegacy)
 
+	d.pendingActions.Add(1)
 	go func() {
+		defer d.pendingActions.Done()
 		startStorage := time.Now()
+		ctx := context.WithoutCancel(ctx)
 		ctx, cancel := context.WithTimeoutCause(ctx, time.Second*10, errors.New("storage get timeout"))
 		defer cancel()
 		_, err := d.Storage.Get(ctx, name, options)
@@ -102,8 +113,11 @@ func (d *DualWriterMode1) List(ctx context.Context, options *metainternalversion
 	}
 	d.recordLegacyDuration(errLegacy != nil, mode1Str, options.Kind, method, startLegacy)
 
+	d.pendingActions.Add(1)
 	go func() {
+		defer d.pendingActions.Done()
 		startStorage := time.Now()
+		ctx := context.WithoutCancel(ctx)
 		ctx, cancel := context.WithTimeoutCause(ctx, time.Second*10, errors.New("storage list timeout"))
 		defer cancel()
 		_, err := d.Storage.List(ctx, options)
@@ -127,8 +141,11 @@ func (d *DualWriterMode1) Delete(ctx context.Context, name string, deleteValidat
 	}
 	d.recordLegacyDuration(false, mode1Str, name, method, startLegacy)
 
+	d.pendingActions.Add(1)
 	go func() {
+		defer d.pendingActions.Done()
 		startStorage := time.Now()
+		ctx := context.WithoutCancel(ctx)
 		ctx, cancel := context.WithTimeoutCause(ctx, time.Second*10, errors.New("storage delete timeout"))
 		defer cancel()
 		_, _, err := d.Storage.Delete(ctx, name, deleteValidation, options)
@@ -153,8 +170,11 @@ func (d *DualWriterMode1) DeleteCollection(ctx context.Context, deleteValidation
 	}
 	d.recordLegacyDuration(false, mode1Str, options.Kind, method, startLegacy)
 
+	d.pendingActions.Add(1)
 	go func() {
+		defer d.pendingActions.Done()
 		startStorage := time.Now()
+		ctx := context.WithoutCancel(ctx)
 		ctx, cancel := context.WithTimeoutCause(ctx, time.Second*10, errors.New("storage deletecollection timeout"))
 		defer cancel()
 		_, err := d.Storage.DeleteCollection(ctx, deleteValidation, options, listOptions)
@@ -178,8 +198,13 @@ func (d *DualWriterMode1) Update(ctx context.Context, name string, objInfo rest.
 	}
 	d.recordLegacyDuration(false, mode1Str, options.Kind, method, startLegacy)
 
+	d.pendingActions.Add(1)
 	go func() {
+		defer d.pendingActions.Done()
+		ctx := context.WithoutCancel(ctx)
 		ctx, cancel := context.WithTimeoutCause(ctx, time.Second*10, errors.New("storage update timeout"))
+		defer cancel()
+		res := res.DeepCopyObject()
 		updated, err := objInfo.UpdatedObject(ctx, res)
 		if err != nil {
 			log.WithValues("object", updated).Error(err, "could not update or create object")
@@ -196,7 +221,7 @@ func (d *DualWriterMode1) Update(ctx context.Context, name string, objInfo rest.
 			res, err := enrichLegacyObject(foundObj, res, false)
 			if err != nil {
 				log.Error(err, "could not enrich object")
-				cancel()
+				return
 			}
 			objInfo = &updateWrapper{
 				upstream: objInfo,
@@ -204,7 +229,6 @@ func (d *DualWriterMode1) Update(ctx context.Context, name string, objInfo rest.
 			}
 		}
 		startStorage := time.Now()
-		defer cancel()
 		_, _, errObjectSt := d.Storage.Update(ctx, name, objInfo, createValidation, updateValidation, forceAllowCreate, options)
 		d.recordStorageDuration(errObjectSt != nil, mode1Str, options.Kind, method, startStorage)
 	}()
@@ -239,4 +263,8 @@ func (d *DualWriterMode1) ConvertToTable(ctx context.Context, object runtime.Obj
 
 func (d *DualWriterMode1) Compare(storageObj, legacyObj runtime.Object) bool {
 	return d.Storage.Compare(storageObj, legacyObj)
+}
+
+func (d *DualWriterMode1) waitPendingActions() {
+	d.pendingActions.Wait()
 }
