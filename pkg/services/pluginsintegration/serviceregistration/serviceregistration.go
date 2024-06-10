@@ -69,7 +69,7 @@ func (s *Service) RegisterExternalService(ctx context.Context, pluginID string, 
 	}
 
 	if s.features.IsEnabled(ctx, featuremgmt.FlagAccessActionSets) {
-		self.ActionSets = svc.ActionSets
+		self.ActionSets = toResourcePermissionActionSets(svc.ActionSets)
 	}
 
 	registration := &extsvcauth.ExternalServiceRegistration{
@@ -109,13 +109,9 @@ func toAccessControlPermissions(ps []pfs.Permission) []accesscontrol.Permission 
 	return res
 }
 
-func toAccessControlActionSets(as []pfs.ActionSet) []resourcepermissions.ActionSet {
+func toResourcePermissionActionSets(as []pfs.ActionSet) []resourcepermissions.ActionSet {
 	res := make([]resourcepermissions.ActionSet, 0, len(as))
 	for _, a := range as {
-		scope := ""
-		if a.Action != nil {
-			scope = *a.Scope
-		}
 		res = append(res, resourcepermissions.ActionSet{
 			Action:  a.Action,
 			Actions: a.Actions,
