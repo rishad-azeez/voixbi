@@ -20,7 +20,8 @@ export function NewsContainer({ className }: NewsContainerProps) {
 
   return (
     <>
-      <ToolbarButton className={className} onClick={onToggleShowNewsDrawer} iconOnly icon="rss" aria-label="News" />
+      <ToolbarButton className={className} onClick={() => {}} iconOnly icon="rss" aria-label="News" />
+      {/* <ToolbarButton className={className} onClick={onToggleShowNewsDrawer} iconOnly icon="rss" aria-label="News" /> */}
       {showNewsDrawer && (
         <Drawer
           title={
@@ -39,7 +40,8 @@ export function NewsContainer({ className }: NewsContainerProps) {
                 <IconButton
                   name="times"
                   variant="secondary"
-                  onClick={onToggleShowNewsDrawer}
+                  // onClick={onToggleShowNewsDrawer}
+                  onClick={() => {}}
                   data-testid={selectors.components.Drawer.General.close}
                   tooltip={t(`news.drawer.close`, 'Close Drawer')}
                 />

@@ -56,8 +56,8 @@ export function LicenseChrome({ header, editionNotice, subheader, children }: Pr
           }}
         >
           <img
-            src="public/img/grafana_icon.svg"
-            alt="Grafana"
+            src="public/img/IOCN-02.svg"
+            alt="VOIXBI"
             width="80px"
             style={{ position: 'absolute', left: '23px', top: '20px' }}
           />

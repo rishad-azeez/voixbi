@@ -65,7 +65,7 @@ describe('contact points', () => {
         expect(screen.queryByTestId(selectors.components.Alert.alertV2('error'))).not.toBeInTheDocument();
       });
 
-      expect(screen.getByText('grafana-default-email')).toBeInTheDocument();
+      expect(screen.getByText('VOIXBI-default-email')).toBeInTheDocument();
       expect(screen.getAllByTestId('contact-point')).toHaveLength(4);
 
       // check for available actions – our mock 4 contact points, 1 of them is provisioned

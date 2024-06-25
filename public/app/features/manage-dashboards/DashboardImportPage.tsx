@@ -18,7 +18,7 @@ import {
   DropzoneFile,
   FileDropzoneDefaultChildren,
   LinkButton,
-  TextLink,
+  // TextLink,
   Label,
   Stack,
 } from '@grafana/ui';
@@ -126,11 +126,11 @@ class UnthemedDashboardImport extends PureComponent<Props> {
   renderImportForm() {
     const styles = importStyles(this.props.theme);
 
-    const GcomDashboardsLink = () => (
-      <TextLink variant="bodySmall" href="https://grafana.com/grafana/dashboards/" external>
-        grafana.com/dashboards
-      </TextLink>
-    );
+    // const GcomDashboardsLink = () => (
+    //   <TextLink variant="bodySmall" href="https://grafana.com/grafana/dashboards/" external>
+    //     grafana.com/dashboards
+    //   </TextLink>
+    // );
 
     return (
       <>
@@ -157,9 +157,9 @@ class UnthemedDashboardImport extends PureComponent<Props> {
                 label={
                   <Label className={styles.labelWithLink} htmlFor="url-input">
                     <span>
-                      <Trans i18nKey="dashboard-import.gcom-field.label">
+                      {/* <Trans i18nKey="dashboard-import.gcom-field.label">
                         Find and import dashboards for common applications at <GcomDashboardsLink />
-                      </Trans>
+                      </Trans> */}
                     </span>
                   </Label>
                 }
@@ -168,7 +168,7 @@ class UnthemedDashboardImport extends PureComponent<Props> {
               >
                 <Input
                   id="url-input"
-                  placeholder={t('dashboard-import.gcom-field.placeholder', 'Grafana.com dashboard URL or ID')}
+                  placeholder={'ID'}
                   type="text"
                   {...register('gcomDashboard', {
                     required: t(
@@ -225,7 +225,7 @@ class UnthemedDashboardImport extends PureComponent<Props> {
 
   pageNav: NavModelItem = {
     text: 'Import dashboard',
-    subTitle: 'Import dashboard from file or Grafana.com',
+    subTitle: 'Import dashboard from file',
   };
 
   render() {

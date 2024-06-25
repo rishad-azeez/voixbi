@@ -457,7 +457,7 @@ function MetadataRow({
             <ContactPointsHoverDetails
               alertManagerSourceName={alertManagerSourceName}
               receivers={receivers}
-              contactPoint={contactPoint}
+              contactPoint={'VOIXBI-default-email'}
             />
           </MetaText>
         )}
@@ -466,7 +466,7 @@ function MetadataRow({
             {customGrouping && (
               <MetaText icon="layer-group" data-testid="grouping">
                 <span>Grouped by</span>
-                <Strong>{groupBy.join(', ')}</Strong>
+                <Strong>{['VOIXVBI_folder', 'alertname'].join(', ')}</Strong>
               </MetaText>
             )}
             {singleGroup && (

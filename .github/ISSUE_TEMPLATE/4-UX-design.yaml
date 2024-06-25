@@ -8,7 +8,7 @@ body:
     attributes:
       label: "Background / Why we're doing this"
       description: Describe the problem and background of the issue. This could include research insights that inform the design changes, unmet user needs, or other usability issues.
-      placeholder: Add UI improvements to make Grafana Alerting alert creation easier based on usability test results.
+      placeholder: Add UI improvements to make VOIXBI Alerting alert creation easier based on usability test results.
     validations:
       required: true
   - type: dropdown

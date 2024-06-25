@@ -243,11 +243,11 @@ export function getNavSubTitle(navId: string | undefined) {
     case 'serviceaccounts':
       return t('nav.service-accounts.subtitle', 'Use service accounts to run automated workloads in Grafana');
     case 'global-users':
-      return t('nav.global-users.subtitle', 'Manage users in Grafana');
+      return t('nav.global-users.subtitle', 'Manage users in VOIXBI');
     case 'global-orgs':
-      return t('nav.global-orgs.subtitle', 'Isolated instances of Grafana running on the same server');
+      return t('nav.global-orgs.subtitle', 'Isolated instances of VOIXBI running on the same server');
     case 'server-settings':
-      return t('nav.server-settings.subtitle', 'View the settings defined in your Grafana config');
+      return t('nav.server-settings.subtitle', 'View the settings defined in your VOIXBI config');
     case 'storage':
       return t('nav.storage.subtitle', 'Manage file storage');
     case 'migrate-to-cloud':

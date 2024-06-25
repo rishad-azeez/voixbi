@@ -52,7 +52,8 @@
         "feedUrl": "https://grafana.com/blog/news.xml"
       },
       "title": "Latest from the blog",
-      "type": "news"
+      "type": "//Original type: VOIXBI news",
+      "_comment": "Original type: news"
     }
   ],
   "schemaVersion": 22,

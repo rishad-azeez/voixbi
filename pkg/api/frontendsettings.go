@@ -154,11 +154,11 @@ func (hs *HTTPServer) getFrontendSettings(c *contextmodel.ReqContext) (*dtos.Fro
 	commit := setting.BuildCommit
 	commitShort := getShortCommitHash(setting.BuildCommit, 10)
 	buildstamp := setting.BuildStamp
-	versionString := fmt.Sprintf(`%s v%s (%s)`, setting.ApplicationName, version, commitShort)
+	// versionString := fmt.Sprintf(`%s v%s (%s)`, setting.ApplicationName, version, commitShort)
 
 	if hideVersion {
 		version = ""
-		versionString = setting.ApplicationName
+		// versionString = setting.ApplicationName
 		commit = ""
 		commitShort = ""
 		buildstamp = 0
@@ -230,7 +230,7 @@ func (hs *HTTPServer) getFrontendSettings(c *contextmodel.ReqContext) (*dtos.Fro
 		BuildInfo: dtos.FrontendSettingsBuildInfoDTO{
 			HideVersion:   hideVersion,
 			Version:       version,
-			VersionString: versionString,
+			VersionString: "VOIXBI v1.0.0",
 			Commit:        commit,
 			CommitShort:   commitShort,
 			Buildstamp:    buildstamp,

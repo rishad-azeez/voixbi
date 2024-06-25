@@ -62,10 +62,10 @@ body:
     attributes:
       label: Environment (with versions)?
       description: |
-        [How do I find my Grafana version info?](https://community.grafana.com/t/how-to-find-your-grafana-version-info-3-different-ways/86857)
-      placeholder: "Grafana, OS, and Browser versions..."
+        [How do I find my VOIXBI version info?](https://community.grafana.com/t/how-to-find-your-grafana-version-info-3-different-ways/86857)
+      placeholder: "VOIXBI, OS, and Browser versions..."
       value: |
-        Grafana:
+        VOIXBI:
         OS:
         Browser:
     validations:
@@ -73,8 +73,8 @@ body:
 
   - type: dropdown
     attributes:
-      label: Grafana platform?
-      description: How are you running/deploying Grafana?
+      label: VOIXBI platform?
+      description: How are you running/deploying VOIXBI?
       options:
         - I use Grafana Cloud
         - Docker

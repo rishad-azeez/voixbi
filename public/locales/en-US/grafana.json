@@ -967,7 +967,7 @@
       "title": "Organizations"
     },
     "global-users": {
-      "subtitle": "Manage users in Grafana",
+      "subtitle": "Manage users in VOIXBI",
       "title": "Users"
     },
     "grafana-quaderno": {
@@ -1079,7 +1079,7 @@
       "title": "Search dashboards"
     },
     "server-settings": {
-      "subtitle": "View the settings defined in your Grafana config",
+      "subtitle": "View the settings defined in your VOIXBI config",
       "title": "Settings"
     },
     "service-accounts": {

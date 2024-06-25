@@ -26,10 +26,10 @@ export const Basic: StoryFn<typeof ToolbarButtonRow> = (args) => {
       <ToolbarButtonRow {...args}>
         <ToolbarButton>Just text</ToolbarButton>
         <ToolbarButton icon="sync" tooltip="Sync" />
-        <ToolbarButton imgSrc="./grafana_icon.svg">With imgSrc</ToolbarButton>
+        <ToolbarButton imgSrc="./IOCN-02.svg">With imgSrc</ToolbarButton>
         <ToolbarButton>Just text</ToolbarButton>
         <ToolbarButton icon="sync" tooltip="Sync" />
-        <ToolbarButton imgSrc="./grafana_icon.svg">With imgSrc</ToolbarButton>
+        <ToolbarButton imgSrc="./IOCN-02.svg">With imgSrc</ToolbarButton>
       </ToolbarButtonRow>
     </DashboardStoryCanvas>
   );

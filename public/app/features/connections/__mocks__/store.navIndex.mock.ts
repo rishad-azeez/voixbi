@@ -354,7 +354,7 @@ export const navIndex: NavIndex = {
           {
             id: 'server-settings',
             text: 'Settings',
-            subTitle: 'View the settings defined in your Grafana config',
+            subTitle: 'View the settings defined in your VOIXBI config',
             icon: 'sliders-v-alt',
             url: '/admin/settings',
           },
@@ -448,7 +448,7 @@ export const navIndex: NavIndex = {
       {
         id: 'server-settings',
         text: 'Settings',
-        subTitle: 'View the settings defined in your Grafana config',
+        subTitle: 'View the settings defined in your VOIXBI config',
         icon: 'sliders-v-alt',
         url: '/admin/settings',
       },
@@ -477,7 +477,7 @@ export const navIndex: NavIndex = {
   'server-settings': {
     id: 'server-settings',
     text: 'Settings',
-    subTitle: 'View the settings defined in your Grafana config',
+    subTitle: 'View the settings defined in your VOIXBI config',
     icon: 'sliders-v-alt',
     url: '/admin/settings',
   },

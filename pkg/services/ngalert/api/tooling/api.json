@@ -323,7 +323,7 @@
     },
     "receiver": {
      "description": "Name of the receiver to send notifications to.",
-     "example": "grafana-default-email",
+     "example": "VOIXBI-default-email",
      "type": "string"
     },
     "repeat_interval": {

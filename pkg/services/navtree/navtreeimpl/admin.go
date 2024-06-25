@@ -35,7 +35,7 @@ func (s *ServiceImpl) getAdminNode(c *contextmodel.ReqContext) (*navtree.NavLink
 
 	if hasAccess(ac.EvalAny(ac.EvalPermission(ac.ActionOrgUsersRead), ac.EvalPermission(ac.ActionUsersRead, ac.ScopeGlobalUsersAll))) {
 		configNodes = append(configNodes, &navtree.NavLink{
-			Text: "Users", SubTitle: "Manage users in Grafana", Id: "global-users", Url: s.cfg.AppSubURL + "/admin/users", Icon: "user",
+			Text: "Users", SubTitle: "Manage users in VOIXBI", Id: "global-users", Url: s.cfg.AppSubURL + "/admin/users", Icon: "user",
 		})
 	}
 
@@ -96,13 +96,13 @@ func (s *ServiceImpl) getAdminNode(c *contextmodel.ReqContext) (*navtree.NavLink
 
 	if hasAccess(ac.EvalPermission(ac.ActionSettingsRead, ac.ScopeSettingsAll)) {
 		configNodes = append(configNodes, &navtree.NavLink{
-			Text: "Settings", SubTitle: "View the settings defined in your Grafana config", Id: "server-settings", Url: s.cfg.AppSubURL + "/admin/settings", Icon: "sliders-v-alt",
+			Text: "Settings", SubTitle: "View the settings defined in your VOIXBI config", Id: "server-settings", Url: s.cfg.AppSubURL + "/admin/settings", Icon: "sliders-v-alt",
 		})
 	}
 
 	if hasGlobalAccess(orgsAccessEvaluator) {
 		configNodes = append(configNodes, &navtree.NavLink{
-			Text: "Organizations", SubTitle: "Isolated instances of Grafana running on the same server", Id: "global-orgs", Url: s.cfg.AppSubURL + "/admin/orgs", Icon: "building",
+			Text: "Organizations", SubTitle: "Isolated instances of VOIXBI running on the same server", Id: "global-orgs", Url: s.cfg.AppSubURL + "/admin/orgs", Icon: "building",
 		})
 	}
 

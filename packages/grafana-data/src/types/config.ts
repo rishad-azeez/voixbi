@@ -175,7 +175,7 @@ export interface GrafanaConfig {
   queryHistoryEnabled: boolean;
   helpEnabled: boolean;
   profileEnabled: boolean;
-  newsFeedEnabled: boolean;
+  // newsFeedEnabled: boolean;
   ldapEnabled: boolean;
   sigV4AuthEnabled: boolean;
   azureAuthEnabled: boolean;

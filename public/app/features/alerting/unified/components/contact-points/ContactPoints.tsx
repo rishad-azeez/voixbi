@@ -423,7 +423,8 @@ const ContactPointHeader = (props: ContactPointHeaderProps) => {
       <Stack direction="row" alignItems="center" gap={1}>
         <Stack alignItems="center" gap={1}>
           <Text variant="body" weight="medium">
-            {name}
+            {/*name */}
+            {'VOIXBI-default-email'}
           </Text>
         </Stack>
         {isReferencedByAnyPolicy && (

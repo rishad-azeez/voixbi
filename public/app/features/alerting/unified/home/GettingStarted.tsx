@@ -31,7 +31,7 @@ export default function GettingStarted() {
           <Text element="h3">How it works</Text>
           <ul className={styles.list}>
             <li>
-              Grafana alerting periodically queries data sources and evaluates the condition defined in the alert rule
+              VOIXBI alerting periodically queries data sources and evaluates the condition defined in the alert rule
             </li>
             <li>If the condition is breached, an alert instance fires</li>
             <li>Firing instances are routed to notification policies based on matching labels</li>

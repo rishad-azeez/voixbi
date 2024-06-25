@@ -241,7 +241,7 @@ export class DashboardExporter {
       requires['grafana'] = {
         type: 'grafana',
         id: 'grafana',
-        name: 'Grafana',
+        name: 'VOIXBI',
         version: config.buildInfo.version,
       };
 

@@ -314,7 +314,7 @@ func GetAvailableNotifiers() []*NotifierPlugin {
 					Description:  "Component of the source machine that is responsible for the event, for example mysql or eth0",
 					Element:      ElementTypeInput,
 					InputType:    InputTypeText,
-					Placeholder:  "Grafana",
+					Placeholder:  "VOIXBI",
 					PropertyName: "component",
 				},
 				{ // New in 8.0.
@@ -345,7 +345,7 @@ func GetAvailableNotifiers() []*NotifierPlugin {
 					Description:  "The name of the monitoring client that is triggering this event. You can use templates",
 					Element:      ElementTypeInput,
 					InputType:    InputTypeText,
-					Placeholder:  "Grafana",
+					Placeholder:  "VOIXBI",
 					PropertyName: "client",
 				},
 				{ // New in 9.4.

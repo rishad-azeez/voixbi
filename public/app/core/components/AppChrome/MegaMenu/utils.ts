@@ -134,7 +134,7 @@ export function getEditionAndUpdateLinks(): NavModelItem[] {
       id: 'updateVersion',
       text: `New version available!`,
       icon: 'download-alt',
-      url: 'https://grafana.com/grafana/download?utm_source=grafana_footer',
+      // url: 'https://grafana.com/grafana/download?utm_source=grafana_footer',
     });
   }
 

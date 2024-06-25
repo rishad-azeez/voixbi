@@ -66,7 +66,7 @@ jest.mock('app/features/query/components/QueryEditorRow', () => ({
 // simplified routing mocks
 const grafanaAlertManagerDataSource: AlertManagerDataSource = {
   name: GRAFANA_RULES_SOURCE_NAME,
-  imgUrl: 'public/img/grafana_icon.svg',
+  imgUrl: 'public/img/IOCN-02.svg',
   hasConfigurationAPI: true,
 };
 jest.mock('app/features/alerting/unified/utils/datasource', () => {

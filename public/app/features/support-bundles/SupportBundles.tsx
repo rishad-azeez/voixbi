@@ -11,7 +11,7 @@ import { loadBundles, removeBundle, checkBundles } from './state/actions';
 
 const subTitle = (
   <span>
-    Support bundles allow you to easily collect and share Grafana logs, configuration, and data with the Grafana Labs
+    Support bundles allow you to easily collect and share VOIXBI logs, configuration, and data with the VOIXBI Labs
     team.
   </span>
 );
